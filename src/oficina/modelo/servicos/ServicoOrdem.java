@@ -14,7 +14,11 @@ public class ServicoOrdem implements Servico {
     private final String placa;
     private final OficinaController controller;
     private boolean executado = false;
+    
+    @SuppressWarnings("unused")
     private OrdemServico ordem; // opcional, caso exista
+    
+
 
     public ServicoOrdem(OficinaController controller, String placa) {
         this.controller = controller;
