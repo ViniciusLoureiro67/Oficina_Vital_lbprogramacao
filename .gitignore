@@ -1,0 +1,12 @@
+# Eclipse/Java
+.classpath
+.project
+.settings/
+bin/
+out/
+target/
+.idea/
+.vscode/
+*.iml
+*.log
+.DS_Store
