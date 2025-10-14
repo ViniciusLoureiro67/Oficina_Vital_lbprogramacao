@@ -1,6 +1,5 @@
 package oficina.controle;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -8,19 +7,18 @@ import oficina.modelo.Cliente;
 import oficina.modelo.Veiculo;
 import oficina.modelo.OrdemServico; 
 
+import java.util.ArrayList; 
 
 public class OficinaController {
 
-   
     private final List<Cliente> clientes = new ArrayList<>();
     private final List<Veiculo> veiculos = new ArrayList<>();
-    private final List<OrdemServico> ordensServico = new ArrayList<>();
+    private final List<OrdemServico> ordensServico = new ArrayList<>(); 
 
     public OficinaController() {
         System.out.println("LOG: OficinaController inicializado.");
     }
 
-    
     public void adicionarCliente(Cliente c) {
         if (c != null) {
             this.clientes.add(c);
@@ -28,16 +26,13 @@ public class OficinaController {
         }
     }
 
- 
     public void cadastrarVeiculo(Veiculo v) {
-      
         this.adicionarVeiculo(v);
     }
-    
-   
+
     public void adicionarVeiculo(Veiculo v) {
         if (v != null) {
-           
+
             if (this.veiculos.contains(v)) {
                 System.out.println("LOG: Veículo com placa " + v.getPlaca() + " já cadastrado. Cadastro ignorado.");
                 return;
@@ -47,11 +42,9 @@ public class OficinaController {
         }
     }
 
-  
     public void registrarOrdemServico(OrdemServico os) {
         if (os == null) return;
 
-      
         String placa = os.getVeiculo().getPlaca();
         if (this.getVeiculoPorPlaca(placa) != null) {
             this.ordensServico.add(os);
@@ -60,21 +53,34 @@ public class OficinaController {
             System.out.println("LOG: ERRO - Veículo com placa " + placa + " não cadastrado. OS não registrada.");
         }
     }
-    
-    
-    public void listarServicos() {
-        System.out.println("\n--- INÍCIO: LISTA DE ORDENS DE SERVIÇO (" + this.ordensServico.size() + ") ---");
+
+
+    /**
+     * CORREÇÃO FINAL: Usa os.isFinalizada() para sincronizar com a classe OrdemServico.java
+     */
+    public String listarServicos() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("\n--- LISTA DE ORDENS DE SERVIÇO (" + this.ordensServico.size() + ") ---\n");
+
         if (this.ordensServico.isEmpty()) {
-            System.out.println("Nenhuma Ordem de Serviço registrada.");
+            sb.append("Nenhuma Ordem de Serviço registrada.\n");
         } else {
             for (OrdemServico os : this.ordensServico) {
-                System.out.println("  > " + os.toString());
+                 // Sincronização: os.isFinalizada()
+                 String status = os.isFinalizada() ? "FINALIZADA" : "PENDENTE"; 
+                 sb.append(String.format(
+                    "ID: %d | Veículo: %s (Placa: %s) | Valor: R$ %.2f | Status: %s\n",
+                    os.getId(),
+                    os.getVeiculo().getModelo(),
+                    os.getVeiculo().getPlaca(),
+                    os.getValor(),
+                    status
+                 ));
             }
         }
-        System.out.println("--- FIM: LISTA DE ORDENS DE SERVIÇO ---");
+        sb.append("--- FIM: LISTA DE ORDENS DE SERVIÇO ---\n");
+        return sb.toString();
     }
-
-   
 
 
     public Veiculo getVeiculoPorPlaca(String placa) {
@@ -89,9 +95,12 @@ public class OficinaController {
     public Veiculo buscarVeiculoPorPlaca(String placa) {
         return getVeiculoPorPlaca(placa);
     }
-    
-  
+
     public List<Cliente> getClientes() { return clientes; }
     public List<Veiculo> getVeiculos() { return veiculos; }
+    
+    /**
+     * Getter usado pela GUI para acessar a lista.
+     */
     public List<OrdemServico> getOrdensServico() { return ordensServico; }
 }
