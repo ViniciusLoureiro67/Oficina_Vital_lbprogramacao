@@ -1,185 +1,349 @@
 package oficina.apresentacao;
 
 import oficina.controle.OficinaController;
-import oficina.modelo.Carro;
-import oficina.modelo.Veiculo;
-import oficina.modelo.OrdemServico;
+import oficina.modelo.*;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.util.List;
 
+/**
+ * Interface gráfica completa da Oficina Vital.
+ * Contém todas as funcionalidades do menu principal do console.
+ */
 public class OficinaGUI extends JFrame {
 
-
+    private static final long serialVersionUID = 1L;
     private final OficinaController controller;
 
-    private JTextField txtPlaca, txtMarca, txtModelo, txtAno, txtPortas;
-    private JButton btnCadastrarVeiculo;
-
-
-    private JTextArea txtAreaLogs;
-    private JButton btnListarOS;
+    private JTextArea txtLogs;
+    private JPanel painelCentral;
 
     public OficinaGUI() {
-
         this.controller = new OficinaController();
-        setTitle("Oficina Vital - Sistema de Gerenciamento (Integr. 5 - GUI)");
-        setSize(800, 600);
+        setTitle("Oficina Vital - Sistema de Gerenciamento");
+        setSize(950, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout(10, 10)); 
- 
-        JPanel painelCadastro = criarPainelCadastro();
-        JPanel painelLogs = criarPainelLogs();
-        JPanel painelBotoes = criarPainelBotoes();
+        setLayout(new BorderLayout(10, 10));
+        setLocationRelativeTo(null);
 
-        add(painelCadastro, BorderLayout.NORTH);
-        add(painelLogs, BorderLayout.CENTER);
-        add(painelBotoes, BorderLayout.SOUTH);
+        add(criarMenuSuperior(), BorderLayout.NORTH);
+        add(criarPainelCentral(), BorderLayout.CENTER);
+        add(criarPainelLogs(), BorderLayout.SOUTH);
 
         inicializarDadosDeTeste();
-
-        setLocationRelativeTo(null);
     }
 
-    private JPanel criarPainelCadastro() {
-        JPanel painel = new JPanel(new GridLayout(3, 4, 5, 5));
-        painel.setBorder(BorderFactory.createTitledBorder("Cadastro de Carro (Simplificado)"));
+    private JPanel criarMenuSuperior() {
+        JPanel painelMenu = new JPanel(new FlowLayout(FlowLayout.CENTER, 8, 8));
 
-        painel.add(new JLabel("Placa:"));
-        txtPlaca = new JTextField();
-        painel.add(txtPlaca);
+        JButton btnVeiculo = new JButton("Cadastrar Veículo");
+        JButton btnCliente = new JButton("Cadastrar Cliente");
+        JButton btnMecanico = new JButton("Cadastrar Mecânico");
+        JButton btnOS = new JButton("Registrar Ordem de Serviço");
+        JButton btnListarVeiculos = new JButton("Listar Veículos");
+        JButton btnListarClientes = new JButton("Listar Clientes");
+        JButton btnListarMecanicos = new JButton("Listar Mecânicos");
+        JButton btnListarOS = new JButton("Listar Ordens de Serviço");
+        JButton btnTeste = new JButton("Teste Automático");
 
-        painel.add(new JLabel("Marca:"));
-        txtMarca = new JTextField();
-        painel.add(txtMarca);
+        painelMenu.add(btnVeiculo);
+        painelMenu.add(btnCliente);
+        painelMenu.add(btnMecanico);
+        painelMenu.add(btnOS);
+        painelMenu.add(btnListarVeiculos);
+        painelMenu.add(btnListarClientes);
+        painelMenu.add(btnListarMecanicos);
+        painelMenu.add(btnListarOS);
+        painelMenu.add(btnTeste);
 
-        painel.add(new JLabel("Modelo:"));
-        txtModelo = new JTextField();
-        painel.add(txtModelo);
+        btnVeiculo.addActionListener(e -> mostrarPainelCadastroVeiculo());
+        btnCliente.addActionListener(e -> mostrarPainelCadastroCliente());
+        btnMecanico.addActionListener(e -> mostrarPainelCadastroMecanico());
+        btnOS.addActionListener(e -> mostrarPainelRegistrarOS());
+        btnListarVeiculos.addActionListener(e -> listarVeiculos());
+        btnListarClientes.addActionListener(e -> listarClientes());
+        btnListarMecanicos.addActionListener(e -> listarMecanicos());
+        btnListarOS.addActionListener(e -> listarOrdensServico());
+        btnTeste.addActionListener(e -> executarTesteAutomatico());
 
-        painel.add(new JLabel("Ano:"));
-        txtAno = new JTextField();
-        painel.add(txtAno);
+        return painelMenu;
+    }
 
-        painel.add(new JLabel("Portas:"));
-        txtPortas = new JTextField();
-        painel.add(txtPortas);
+    private JPanel criarPainelCentral() {
+        painelCentral = new JPanel(new BorderLayout());
+        painelCentral.setBorder(BorderFactory.createTitledBorder("Painel de Operações"));
+        return painelCentral;
+    }
 
-        btnCadastrarVeiculo = new JButton("Cadastrar Carro e Registrar OS");
-      
-        painel.add(new JLabel()); 
-        painel.add(btnCadastrarVeiculo);
+    private JScrollPane criarPainelLogs() {
+        txtLogs = new JTextArea(8, 80);
+        txtLogs.setEditable(false);
+        JScrollPane scroll = new JScrollPane(txtLogs);
+        scroll.setBorder(BorderFactory.createTitledBorder("Logs do Sistema"));
+        return scroll;
+    }
 
-        btnCadastrarVeiculo.addActionListener(new ActionListener() {
-           
-            public void actionPerformed(ActionEvent e) {
-                cadastrarVeiculoEOrdemServico();
+    // ---------- Painéis de Cadastro ----------
+    private void mostrarPainelCadastroVeiculo() {
+        painelCentral.removeAll();
+        painelCentral.setLayout(new BorderLayout());
+
+        JPanel painel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+
+        JComboBox<String> tipo = new JComboBox<>(new String[]{"Carro", "Moto"});
+        JTextField placa = new JTextField(10);
+        JTextField marca = new JTextField(10);
+        JTextField modelo = new JTextField(10);
+        JTextField ano = new JTextField(5);
+        JTextField atributo = new JTextField(8);
+        JButton btnSalvar = new JButton("Salvar Veículo");
+
+        gbc.gridx = 0; gbc.gridy = 0;
+        painel.add(new JLabel("Tipo:"), gbc);
+        gbc.gridx = 1;
+        painel.add(tipo, gbc);
+        gbc.gridx = 2;
+        painel.add(new JLabel("Placa:"), gbc);
+        gbc.gridx = 3;
+        painel.add(placa, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        painel.add(new JLabel("Marca:"), gbc);
+        gbc.gridx = 1;
+        painel.add(marca, gbc);
+        gbc.gridx = 2;
+        painel.add(new JLabel("Ano:"), gbc);
+        gbc.gridx = 3;
+        painel.add(ano, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 2;
+        painel.add(new JLabel("Modelo:"), gbc);
+        gbc.gridx = 1; gbc.gridwidth = 3;
+        painel.add(modelo, gbc);
+        gbc.gridwidth = 1;
+
+        gbc.gridx = 0; gbc.gridy = 3;
+        painel.add(new JLabel("Portas (Carro) / Cilindradas (Moto):"), gbc);
+        gbc.gridx = 1; gbc.gridwidth = 3;
+        painel.add(atributo, gbc);
+        gbc.gridwidth = 1;
+
+        gbc.gridx = 0; gbc.gridy = 4; gbc.gridwidth = 4;
+        gbc.anchor = GridBagConstraints.CENTER;
+        painel.add(btnSalvar, gbc);
+
+        painelCentral.add(painel, BorderLayout.CENTER);
+        painelCentral.revalidate();
+        painelCentral.repaint();
+
+        btnSalvar.addActionListener(e -> {
+            try {
+                String tipoSelecionado = tipo.getSelectedItem().toString().toLowerCase();
+                String placaTxt = placa.getText().trim().toUpperCase();
+                String marcaTxt = marca.getText().trim();
+                String modeloTxt = modelo.getText().trim();
+                int anoNum = Integer.parseInt(ano.getText().trim());
+
+                if (placaTxt.isEmpty() || marcaTxt.isEmpty() || modeloTxt.isEmpty())
+                    throw new IllegalArgumentException("Preencha todos os campos obrigatórios.");
+
+                if (tipoSelecionado.equals("carro")) {
+                    int portas = Integer.parseInt(atributo.getText().trim());
+                    Carro carro = new Carro(placaTxt, marcaTxt, modeloTxt, anoNum, portas);
+                    controller.adicionarVeiculo(carro);
+                } else {
+                    int cilindradas = Integer.parseInt(atributo.getText().trim());
+                    Moto moto = new Moto(placaTxt, marcaTxt, modeloTxt, anoNum, cilindradas);
+                    controller.adicionarVeiculo(moto);
+                }
+
+                log("✅ Veículo cadastrado com sucesso!");
+            } catch (NumberFormatException ex) {
+                log("⚠️ Erro: Ano, portas ou cilindradas precisam ser números válidos.");
+            } catch (Exception ex) {
+                log("❌ Erro ao cadastrar veículo: " + ex.getMessage());
             }
         });
-
-        return painel;
     }
 
-  
-    private JPanel criarPainelLogs() {
-        JPanel painel = new JPanel(new BorderLayout());
-        painel.setBorder(BorderFactory.createTitledBorder("Logs e Ordens de Serviço"));
-        
-        txtAreaLogs = new JTextArea();
-        txtAreaLogs.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(txtAreaLogs);
-        
-        painel.add(scrollPane, BorderLayout.CENTER);
-        return painel;
-    }
-    
+    private void mostrarPainelCadastroCliente() {
+        JPanel painel = new JPanel(new GridLayout(6, 2, 5, 5));
 
-    private JPanel criarPainelBotoes() {
-        JPanel painel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        
-        btnListarOS = new JButton("Listar Todas as Ordens de Serviço");
-   
-        btnListarOS.addActionListener(new ActionListener() {
-           
-            public void actionPerformed(ActionEvent e) {
-                listarOrdensDeServico();
+        JTextField id = new JTextField();
+        JTextField nome = new JTextField();
+        JTextField telefone = new JTextField();
+        JTextField email = new JTextField();
+        JTextField endereco = new JTextField();
+
+        painel.add(new JLabel("ID:"));
+        painel.add(id);
+        painel.add(new JLabel("Nome:"));
+        painel.add(nome);
+        painel.add(new JLabel("Telefone:"));
+        painel.add(telefone);
+        painel.add(new JLabel("E-mail:"));
+        painel.add(email);
+        painel.add(new JLabel("Endereço:"));
+        painel.add(endereco);
+
+        JButton btnSalvar = new JButton("Salvar Cliente");
+        painel.add(new JLabel());
+        painel.add(btnSalvar);
+
+        painelCentral.removeAll();
+        painelCentral.add(painel, BorderLayout.CENTER);
+        painelCentral.revalidate();
+        painelCentral.repaint();
+
+        btnSalvar.addActionListener(e -> {
+            try {
+                Cliente c = new Cliente(Integer.parseInt(id.getText()), nome.getText(),
+                        telefone.getText(), email.getText(), endereco.getText());
+                controller.adicionarCliente(c);
+                log("✅ Cliente cadastrado com sucesso!");
+            } catch (Exception ex) {
+                log("❌ Erro ao cadastrar cliente: " + ex.getMessage());
             }
         });
-        
-        painel.add(btnListarOS);
-        return painel;
     }
 
+    private void mostrarPainelCadastroMecanico() {
+        JPanel painel = new JPanel(new GridLayout(6, 2, 5, 5));
 
-    private void cadastrarVeiculoEOrdemServico() {
+        JTextField id = new JTextField();
+        JTextField nome = new JTextField();
+        JTextField telefone = new JTextField();
+        JTextField email = new JTextField();
+        JTextField especialidade = new JTextField();
+
+        painel.add(new JLabel("ID:"));
+        painel.add(id);
+        painel.add(new JLabel("Nome:"));
+        painel.add(nome);
+        painel.add(new JLabel("Telefone:"));
+        painel.add(telefone);
+        painel.add(new JLabel("E-mail:"));
+        painel.add(email);
+        painel.add(new JLabel("Especialidade:"));
+        painel.add(especialidade);
+
+        JButton btnSalvar = new JButton("Salvar Mecânico");
+        painel.add(new JLabel());
+        painel.add(btnSalvar);
+
+        painelCentral.removeAll();
+        painelCentral.add(painel, BorderLayout.CENTER);
+        painelCentral.revalidate();
+        painelCentral.repaint();
+
+        btnSalvar.addActionListener(e -> {
+            try {
+                Mecanico m = new Mecanico(Integer.parseInt(id.getText()), nome.getText(),
+                        telefone.getText(), email.getText(), especialidade.getText());
+                controller.adicionarMecanico(m);
+                log("✅ Mecânico cadastrado com sucesso!");
+            } catch (Exception ex) {
+                log("❌ Erro ao cadastrar mecânico: " + ex.getMessage());
+            }
+        });
+    }
+
+    private void mostrarPainelRegistrarOS() {
+        JPanel painel = new JPanel(new GridLayout(5, 2, 5, 5));
+
+        JTextField id = new JTextField();
+        JTextField placa = new JTextField();
+        JTextField descricao = new JTextField();
+        JTextField valor = new JTextField();
+
+        painel.add(new JLabel("ID OS:"));
+        painel.add(id);
+        painel.add(new JLabel("Placa do Veículo:"));
+        painel.add(placa);
+        painel.add(new JLabel("Descrição:"));
+        painel.add(descricao);
+        painel.add(new JLabel("Valor (R$):"));
+        painel.add(valor);
+
+        JButton btnSalvar = new JButton("Registrar OS");
+        painel.add(new JLabel());
+        painel.add(btnSalvar);
+
+        painelCentral.removeAll();
+        painelCentral.add(painel, BorderLayout.CENTER);
+        painelCentral.revalidate();
+        painelCentral.repaint();
+
+        btnSalvar.addActionListener(e -> {
+            try {
+                Veiculo v = controller.getVeiculoPorPlaca(placa.getText());
+                if (v == null) throw new IllegalArgumentException("Veículo não encontrado.");
+
+                OrdemServico os = new OrdemServico(Integer.parseInt(id.getText()), v,
+                        descricao.getText(), Double.parseDouble(valor.getText()));
+                controller.registrarOrdemServico(os);
+                log("✅ Ordem de Serviço registrada com sucesso!");
+            } catch (Exception ex) {
+                log("❌ Erro ao registrar OS: " + ex.getMessage());
+            }
+        });
+    }
+
+    // ---------- Listagens e Testes ----------
+    private void listarVeiculos() {
+        StringBuilder sb = new StringBuilder("\n=== VEÍCULOS CADASTRADOS ===\n");
+        List<Veiculo> lista = controller.getVeiculos();
+        if (lista.isEmpty()) sb.append("Nenhum veículo cadastrado.\n");
+        else lista.forEach(v -> sb.append(v.exibirInfo()).append("\n"));
+        log(sb.toString());
+    }
+
+    private void listarClientes() {
+        log(controller.listarClientes());
+    }
+
+    private void listarMecanicos() {
+        log(controller.listarMecanicos());
+    }
+
+    private void listarOrdensServico() {
+        log(controller.listarServicos());
+    }
+
+    private void executarTesteAutomatico() {
         try {
-            String placa = txtPlaca.getText().toUpperCase().trim();
-            String marca = txtMarca.getText().trim();
-            String modelo = txtModelo.getText().trim();
-            int ano = Integer.parseInt(txtAno.getText().trim());
-            int portas = Integer.parseInt(txtPortas.getText().trim());
-            
-            if (placa.isEmpty() || marca.isEmpty() || modelo.isEmpty()) {
-                 throw new IllegalArgumentException("Preencha todos os campos de texto.");
-            }
-            
-            Carro novoCarro = new Carro(placa, marca, modelo, ano, portas);
-            controller.cadastrarVeiculo(novoCarro);
-
-            // CORREÇÃO AQUI: Mudando de controller.getOrdens() para controller.getOrdensServico()
-            int proximoId = controller.getOrdensServico().size() + 1; 
-            OrdemServico novaOS = new OrdemServico(proximoId, novoCarro, "Orçamento e Diagnóstico Inicial", 50.0);
-            controller.registrarOrdemServico(novaOS);
-            
-            String log = "\n[SUCESSO] Veículo Cadastrado: " + novoCarro.getPlaca() + "\n" + 
-                         "[SUCESSO] OS Registrada (ID: " + novaOS.getId() + ").\n";
-            txtAreaLogs.append(log);
-            
-            JOptionPane.showMessageDialog(this, "Veículo e OS registrados com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);
-
-            txtPlaca.setText("");
-            txtMarca.setText("");
-            txtModelo.setText("");
-            txtAno.setText("");
-            txtPortas.setText("");
-            
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Erro de Entrada: Ano e Portas devem ser números inteiros válidos.", "Erro de Dados", JOptionPane.ERROR_MESSAGE);
-        } catch (IllegalArgumentException ex) {
-             JOptionPane.showMessageDialog(this, "Erro: " + ex.getMessage(), "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception ex) {
-             JOptionPane.showMessageDialog(this, "Erro ao cadastrar: " + ex.getMessage(), "Erro Inesperado", JOptionPane.ERROR_MESSAGE);
-             txtAreaLogs.append("\n[ERRO] Falha: " + ex.getMessage() + "\n");
+            Veiculo v = new Carro("ABC-1234", "Ford", "Focus", 2020, 4);
+            controller.adicionarVeiculo(v);
+            controller.registrarOrdemServico(new OrdemServico(1, v, "Troca de óleo", 120.0));
+            log("✅ Teste automático executado com sucesso!");
+        } catch (Exception e) {
+            log("❌ Erro no teste automático: " + e.getMessage());
         }
     }
 
-    private void listarOrdensDeServico() {
-        txtAreaLogs.setText(""); 
-
-        String listaFormatada = controller.listarServicos(); // Assume que listarServicos retorna uma String formatada
-        
-        txtAreaLogs.append("--- LISTA DE ORDENS DE SERVIÇO ---\n");
-        txtAreaLogs.append(listaFormatada);
-        txtAreaLogs.append("---------------------------------\n");
-    }
-    
     private void inicializarDadosDeTeste() {
         try {
             Veiculo v1 = new Carro("XYZ-9876", "Honda", "Civic", 2021, 4);
-            controller.cadastrarVeiculo(v1);
-
+            controller.adicionarVeiculo(v1);
             controller.registrarOrdemServico(new OrdemServico(1, v1, "Troca de óleo", 120.0));
             controller.registrarOrdemServico(new OrdemServico(2, v1, "Revisão completa", 450.0));
-
-            // CORREÇÃO FINAL: Usa os métodos que existem no seu projeto.
-            controller.getOrdensServico().get(0).finalizar(); // <-- CORRIGIDO AQUI!
-
-            txtAreaLogs.append("Dados iniciais de teste (2 OS) carregados com sucesso.\n");
-            
+            controller.getOrdensServico().get(0).finalizar();
+            log("Dados de teste carregados com sucesso.");
         } catch (Exception e) {
-            txtAreaLogs.append("Aviso: Falha ao carregar dados de teste iniciais.\n");
+            log("Falha ao carregar dados de teste iniciais.");
         }
+    }
+
+    private void log(String msg) {
+        txtLogs.append(msg + "\n");
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new OficinaGUI().setVisible(true));
     }
 }

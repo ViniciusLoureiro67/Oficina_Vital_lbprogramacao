@@ -1,14 +1,11 @@
 package oficina.modelo;
 
-<<<<<<< HEAD
-=======
 import java.util.Objects;
 
 /**
  * Classe base abstrata para veículos.
  * Aplica encapsulamento, validações e prepara herança para Carro e Moto.
  */
->>>>>>> e058e9efae63767b58bcfbff4efd60f9e3d5fed3
 public abstract class Veiculo {
 
     private String placa;
@@ -16,29 +13,6 @@ public abstract class Veiculo {
     private String modelo;
     private int ano;
 
-<<<<<<< HEAD
-    public Veiculo(String placa, String marca, String modelo, int ano) {
-        this.placa = placa;
-        this.marca = marca;
-        this.modelo = modelo;
-        this.ano = ano;
-    }
-
-    // Getters essenciais
-    public String getPlaca() { return placa; }
-    public String getMarca() { return marca; }
-    public String getModelo() { return modelo; }
-    public int getAno() { return ano; }
-
-    // Método abstrato para exibir informações completas
-    public abstract String exibirInfo();
-    
-    @Override
-    public String toString() {
-        return exibirInfo();
-    }
-}
-=======
     // Construtor completo
     public Veiculo(String placa, String marca, String modelo, int ano) {
         setPlaca(placa);
@@ -47,7 +21,7 @@ public abstract class Veiculo {
         setAno(ano);
     }
 
-    // Getters e Setters com validação
+    // --- Getters e Setters com validações ---
     public String getPlaca() {
         return placa;
     }
@@ -83,26 +57,29 @@ public abstract class Veiculo {
     }
 
     public final void setAno(int ano) {
-        if (ano < 1900) throw new IllegalArgumentException("Ano inválido.");
+        if (ano < 1900)
+            throw new IllegalArgumentException("Ano inválido.");
         this.ano = ano;
     }
 
-    // Método abstrato a ser implementado por Carro e Moto
+    // Método abstrato — implementado por Carro e Moto
     public abstract String exibirInfo();
 
     @Override
     public String toString() {
-        return "Veiculo{placa='" + placa + '\'' +
-               ", marca='" + marca + '\'' +
-               ", modelo='" + modelo + '\'' +
-               ", ano=" + ano + '}';
+        return "Veículo {placa='" + placa + '\'' +
+                ", marca='" + marca + '\'' +
+                ", modelo='" + modelo + '\'' +
+                ", ano=" + ano + '}';
     }
 
-    // Igualdade baseada na placa
+    // --- Igualdade baseada na placa ---
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Veiculo)) return false;
+        if (this == o)
+            return true;
+        if (!(o instanceof Veiculo))
+            return false;
         Veiculo v = (Veiculo) o;
         return Objects.equals(placa, v.placa);
     }
@@ -112,4 +89,3 @@ public abstract class Veiculo {
         return Objects.hash(placa);
     }
 }
->>>>>>> e058e9efae63767b58bcfbff4efd60f9e3d5fed3
